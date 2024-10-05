@@ -4,15 +4,15 @@ using UnityEngine;
 
 public class SpawnManager : MonoBehaviour
 {
-    public GameObject enemyPrefub;
+    public List<GameObject> enemyPrefub=new List<GameObject>();
     public GameObject powerUpPrefub;
     public int enemyCount;
     private float spawnRange=9f;
     private int waweNumber=1;
     void Start()
-    {   
-        SpawnEnemyWawe(waweNumber);
+    {  SpawnEnemyWawe(waweNumber);
         Instantiate(powerUpPrefub,GenerateSpawnPosition(),powerUpPrefub.transform.rotation);
+       
     }
     void Update()
     {
@@ -24,8 +24,9 @@ public class SpawnManager : MonoBehaviour
         }
     }
     void SpawnEnemyWawe(int enemyToSpawn){
-for (int i=0;i<enemyToSpawn;i++){//B for Тип данных и через(;)перечислять
-        Instantiate(enemyPrefub,GenerateSpawnPosition(), enemyPrefub.transform.rotation);
+    for (int i=0;i<enemyToSpawn;i++){
+    int index=Random.Range(0,enemyPrefub.Count);
+        Instantiate(enemyPrefub[index],GenerateSpawnPosition(), Quaternion.identity);
     }
     }
     private Vector3 GenerateSpawnPosition(){
@@ -34,4 +35,8 @@ for (int i=0;i<enemyToSpawn;i++){//B for Тип данных и через(;)п�
         Vector3 spawnPos=new Vector3(spawnPosX,0,spawnPosZ);
         return spawnPos;//без return матерится, return нужен в методах не являющихся void
     }
+    
+        
+        
+    
 }

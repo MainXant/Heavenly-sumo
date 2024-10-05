@@ -1,19 +1,27 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.UI;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
     public bool hasPowerUp=false;
-    private float speed=5f;
-    private float powerUpForce=16f;
+    private bool isOnGround=true;
+    public bool gameOver=false;
     private GameObject focalPoint;
     public GameObject powerUpIndicator;
+    public GameObject jumpText;
+    public AudioSource playerSounds;
+    public AudioClip crashSound;
+    private Rigidbody playerRb;
+    private float speed=5f;
+    private float powerUpForce=16f;
     private float jumpForce=60f;
     private float gravityForce=1;
-    private bool isOnGround=true;
-    private Rigidbody playerRb;
+    
+    
     void Start()
     {
         playerRb=GetComponent<Rigidbody>();
@@ -22,6 +30,7 @@ public class PlayerController : MonoBehaviour
         powerUpIndicator.SetActive(true);
         StartCoroutine(PowerUpCountdownRoutine());
         Physics.gravity*=gravityForce;
+        jumpText.SetActive(true);
     }
     void Update()
     {
@@ -29,6 +38,7 @@ public class PlayerController : MonoBehaviour
         powerUpIndicator.transform.position=transform.position+new Vector3(0,-0.3f,0);
         playerRb.AddForce(focalPoint.transform.forward*moveForward*speed);//движение вперёд , взависимости от направления камеры
         JumpPowerUp();
+        GameOver();
     }    
     void JumpPowerUp(){
         if(Input.GetKeyDown(KeyCode.Space)&&isOnGround&&hasPowerUp){
@@ -37,6 +47,7 @@ public class PlayerController : MonoBehaviour
     }         
     IEnumerator PowerUpCountdownRoutine(){//отсчёт времени действия баффа
     yield return new WaitForSeconds(8);
+    jumpText.SetActive(false);
     hasPowerUp=false;
     powerUpIndicator.SetActive(false);
     }
@@ -48,6 +59,7 @@ public class PlayerController : MonoBehaviour
             Destroy(otcher.gameObject);
             StartCoroutine(PowerUpCountdownRoutine());
             powerUpIndicator.SetActive(true);
+            jumpText.SetActive(true);
      }
     }
     private void OnCollisionEnter(Collision collision)
@@ -55,11 +67,20 @@ public class PlayerController : MonoBehaviour
         if(collision.gameObject.CompareTag("Enemy")&&hasPowerUp){
           Rigidbody enemyRigidbody=collision.gameObject.GetComponent<Rigidbody>();//разъёб при активном ПаверАпе
           Vector3 awayFromPlayer=collision.gameObject.transform.position-transform.position;
-          enemyRigidbody.AddForce(awayFromPlayer*powerUpForce,ForceMode.Impulse);
-          Debug.Log("Collidet with "+collision.gameObject.name+" with PowerUp to "+hasPowerUp);
+          enemyRigidbody.AddForce(2*awayFromPlayer*powerUpForce,ForceMode.Impulse);
         }
+         if(collision.gameObject.CompareTag("Enemy")){
+             playerSounds.PlayOneShot(crashSound,0.5f);
+         }
         if(collision.gameObject.CompareTag("Ground")){
         isOnGround=true;
       }
+    }
+    private void GameOver(){
+        if(transform.position.y<-5){
+            Destroy(gameObject);
+            gameOver=true;
+            SceneManager.LoadScene(2);
+        }
     }
 }
